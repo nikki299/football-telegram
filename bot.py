@@ -3,7 +3,6 @@ import os
 import time
 import feedparser
 from bs4 import BeautifulSoup
-from datetime import datetime
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -15,20 +14,20 @@ def send_telegram(message):
         "text": message,
         "parse_mode": "HTML"
     }
-    requests.post(url, data=data)
+    response = requests.post(url, data=data)
+    print("Telegram response:", response.status_code)
 
-# === 1. Transfer News (RSS) ===
+# === 1. Transfer News ===
 def get_transfers():
     feeds = [
         "https://www.eyefootball.com/rss_news_transfers.xml",
         "https://talksport.com/rss/sports-news/football/transfer-rumours/feed/",
-        # Add more if you want
     ]
     messages = []
     for url in feeds:
         try:
             feed = feedparser.parse(url)
-            for entry in feed.entries[:2]:  # Limit to avoid spam
+            for entry in feed.entries[:2]:
                 title = entry.title
                 link = entry.link
                 msg = f"🚨 <b>TRANSFER UPDATE</b>\n\n{title}\n\n🔗 <a href='{link}'>Read more</a>\n\nHere we go! 🔥"
@@ -37,14 +36,11 @@ def get_transfers():
             pass
     return messages
 
-# === 2. Quick Goals / Live Scores ===
+# === 2. Live Goals (basic for now) ===
 def get_live_goals():
-    # Using football-data.org (free, get token at football-data.org)
-    # For now, simple fallback + Scorebat style
     messages = []
     try:
-        # Public live matches example (expand later)
-        msg = f"⚽ <b>LIVE MATCH CHECK</b>\nChecking current matches...\n(Goal alerts coming soon with free API key)\nHere we go! 🔥"
+        msg = "⚽ <b>LIVE GOAL ALERTS</b>\n\n(We'll add real-time goals soon with a free API key)\nHere we go! 🔥"
         messages.append(msg)
     except:
         pass
@@ -57,29 +53,29 @@ def get_highlights():
         data = resp.json()
         messages = []
         for item in data.get("response", [])[:3]:
-            title = item.get("title", "Goal Highlight")
+            title = item.get("title", "Highlight")
             comp = item.get("competition", "")
             url = item.get("url", "")
             msg = f"🎥 <b>HIGHLIGHT</b>\n{title}\n{comp}\n\nWatch: {url}\n\nHere we go! 🔥"
             messages.append(msg)
         return messages
     except:
-        return ["🎥 Highlights loading... (free API)"]
+        return ["🎥 <b>HIGHLIGHTS</b>\nLoading latest goals..."]
 
 if name == "__main__":
     print("Starting football bot...")
     
-    # Send Transfers
+    # Transfers
     for msg in get_transfers():
         send_telegram(msg)
         time.sleep(3)
     
-    # Send Live Goals
+    # Live Goals
     for msg in get_live_goals():
         send_telegram(msg)
         time.sleep(3)
     
-    # Send Highlights
+    # Highlights
     for msg in get_highlights():
         send_telegram(msg)
         time.sleep(3)
