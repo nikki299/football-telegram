@@ -15,7 +15,7 @@ def send_telegram(message):
     response = requests.post(url, data=data)
     print("✅ Sent:", response.status_code)
 
-if name == "__main__":
+if __name__ == "__main__":
     print("🚀 Starting simple test...")
     
     test_msg = "🧪 <b>Test Message from your Football Bot</b>\n\nThis is a test.\n\nHere we go! 🔥"
